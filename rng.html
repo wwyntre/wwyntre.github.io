@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wyntre's RNG</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="container">
+        <!-- Roll Section -->
+        <div id="rollSection">
+            <h1>Roll</h1>
+            <button id="rollButton">Roll</button>
+            <div id="itemDisplay">Roll Result</div>
+            <div id="oddsDisplay">Odds</div>
+        </div>
+
+        <!-- Inventory Section -->
+        <div id="inventorySection">
+            <h1>Inventory</h1>
+            <div id="totalRolls">Total Rolls: 0</div>
+            <ul id="inventoryList">
+                <!-- Inventory items will be dynamically added here -->
+            </ul>
+        </div>
+
+        <!-- Rarities Section -->
+        <div id="raritiesSection">
+            <h1>Rarities</h1>
+            <div class="rarest"></div>
+            <ul id="rarityList">
+                <!-- Rarities items will be dynamically added here -->
+            </ul>
+        </div>
+    </div>
+    <div id="asciiArt">
+        <pre>
+            ██╗    ██╗██╗   ██╗███╗   ██╗████████╗██████╗ ███████╗███████╗    ██████╗ ███╗   ██╗ ██████╗ 
+            ██║    ██║╚██╗ ██╔╝████╗  ██║╚══██╔══╝██╔══██╗██╔════╝██╔════╝    ██╔══██╗████╗  ██║██╔════╝ 
+            ██║ █╗ ██║ ╚████╔╝ ██╔██╗ ██║   ██║   ██████╔╝█████╗  ███████╗    ██████╔╝██╔██╗ ██║██║  ███╗
+            ██║███╗██║  ╚██╔╝  ██║╚██╗██║   ██║   ██╔══██╗██╔══╝  ╚════██║    ██╔══██╗██║╚██╗██║██║   ██║
+            ╚███╔███╔╝   ██║   ██║ ╚████║   ██║   ██║  ██║███████╗███████║    ██║  ██║██║ ╚████║╚██████╔╝
+             ╚══╝╚══╝    ╚═╝   ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝    ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
+        </pre>
+    </div>
+
+    <!-- Shop Tab -->
+    <div class="shop-tab">Shop</div>
+
+    <!-- Shop Content -->
+    <div class="shop-content">
+        <div class="tabs">
+            <div class="tab" data-tab="upgrades">Upgrades</div>
+            <div class="tab" data-tab="shop">Shop</div>
+            <div class="tab" data-tab="themes">Themes</div>
+            <div class="tab" data-tab="converter">Converter</div> <!-- Added new tab -->
+        </div>
+        <div class="tab-content" id="upgrades">
+            <ul class="shop-list">
+                <!-- Upgrades items here -->
+                <li><img src="upgrade1.jpg" alt="Upgrade 1"><br>Upgrade 1</li>
+                <li><img src="upgrade2.jpg" alt="Upgrade 2"><br>Upgrade 2</li>
+            </ul>
+        </div>
+        <div class="tab-content" id="shop">
+            <ul class="shop-list">
+                <!-- Shop items here -->
+                <li><img src="item1.jpg" alt="Item 1"><br>Item 1</li>
+                <li><img src="item2.jpg" alt="Item 2"><br>Item 2</li>
+            </ul>
+        </div>
+        <div class="tab-content" id="themes">
+            <ul class="shop-list">
+                <!-- Themes items here -->
+                <li><img src="theme1.jpg" alt="Theme 1"><br>Theme 1</li>
+                <li><img src="theme2.jpg" alt="Theme 2"><br>Theme 2</li>
+            </ul>
+        </div>
+
+        <!-- New Converter Tab Content -->
+        <div class="tab-content" id="converter">
+            <div class="convert-section">
+                <div class="converter">
+                    <div class="rarity-section">
+                        <button id="left-arrow">&lt;</button>
+                        <span id="rarity-display"></span>
+                        <button id="right-arrow">&gt;</button>
+                    </div>
+                    <input type="number" id="amount-input" min="1" placeholder="Amount">
+                    <button id="convert-button">Convert</button>
+                    <div id="rngold-display">RNGold: 0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RNGold Display (General) -->
+        <div class="rngold-display">
+            <img src="rngold-icon.png" alt="RNGold Icon" id="rngoldIcon">
+            <span id="rngoldValue">0.0</span>
+        </div>
+    </div>
+
+    <script src="rngscript.js"></script>
+</body>
+</html>

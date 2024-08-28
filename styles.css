@@ -1,0 +1,392 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #282c34;
+    color: white;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    color: #ffffff;
+}
+
+/* Container */
+#container {
+    text-align: left;
+}
+
+/* Roll Section */
+#rollSection {
+    display: inline-block;
+    margin: 0 10px 20px 0;
+    text-align: center;
+    border: 2px solid white;
+    border-radius: 10px;
+    padding: 5px;
+    width: 300px;
+    vertical-align: top;
+}
+
+/* Roll Button */
+#rollButton {
+    font-size: 20px;
+    padding: 10px;
+    background-color: #61dafb;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+#rollButton:hover {
+    background-color: #21a1f1;
+}
+
+#itemDisplay {
+    font-size: 24px;
+    margin-top: 20px;
+}
+
+/* Adjusted to move the rarest possessed rarity below the header text */
+#rarestPossessed {
+    font-size: 18px;
+    margin-top: 5px;
+}
+
+#oddsDisplay {
+    font-size: 18px;
+    margin-top: 10px;
+}
+
+/* Inventory and Rarities Sections */
+#inventorySection, #raritiesSection {
+    display: inline-block;
+    margin: 0 10px 20px 0;
+    border: 2px solid white;
+    border-radius: 10px;
+    padding: 5px;
+    width: 300px;
+    height: 50vh;
+    vertical-align: top;
+    text-align: center;
+    overflow-y: auto;
+}
+
+/* Custom Scrollbar */
+#inventorySection::-webkit-scrollbar, 
+#raritiesSection::-webkit-scrollbar {
+    width: 10px;
+}
+
+#inventorySection::-webkit-scrollbar-track, 
+#raritiesSection::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+}
+
+#inventorySection::-webkit-scrollbar-thumb, 
+#raritiesSection::-webkit-scrollbar-thumb {
+    background-color: white;
+    border-radius: 10px;
+}
+
+#inventorySection, #raritiesSection {
+    scrollbar-width: thin;
+    scrollbar-color: white transparent;
+}
+
+/* Lists */
+#inventoryList, #rarityList {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+    position: relative;
+    top: 0;
+}
+
+#inventoryList li, #rarityList li {
+    margin: 5px 0;
+}
+
+/* ASCII Art */
+#asciiArt {
+    font-size: 8px;
+    position: fixed;
+    bottom: 1px;
+    left: 1px;
+    margin: 0;
+    padding: 0;
+}
+
+/* Shop Tab */
+.shop-tab {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 100px;
+    padding: 10px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    cursor: pointer;
+    border-top-left-radius: 10px;
+    z-index: 1000;
+}
+
+.shop-content {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 33vw;
+    height: 20vh; /* Reduced height */
+    background-color: #fff;
+    border: 1px solid #333;
+    border-radius: 10px;
+    display: none;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+    z-index: 999;
+}
+
+/* Shop List */
+.shop-list {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100%;
+    white-space: nowrap;
+}
+
+.shop-list li {
+    list-style: none;
+    text-align: center;
+    margin-right: 10px;
+}
+
+.shop-list img {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 5px;
+}
+
+/* Show shop content on hover */
+.shop-tab:hover + .shop-content {
+    display: block;
+}
+
+/* Keep shop content visible when mouse is over it */
+.shop-tab:hover + .shop-content,
+.shop-content:hover {
+    display: block;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 10px;
+}
+
+.tab {
+    cursor: pointer;
+    padding: 10px;
+    border: none;
+    background-color: #f0f0f0;
+    color: #333;
+    text-align: center;
+    flex: 1;
+    border-radius: 5px 5px 0 0;
+}
+
+.tab.active {
+    background-color: #fff;
+    color: #333;
+    border-bottom: 1px solid #fff;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Update RNGold Button */
+#updateRNGoldButton {
+    display: block;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#updateRNGoldButton:hover {
+    background-color: #45a049;
+}
+
+/* RNGold Display */
+.rngold-display {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    background-color: #333;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+#rngoldIcon {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+
+#rngoldValue {
+    color: black;
+}
+
+/* Convert Basic Items to RNGold Button */
+#convertItemsButton {
+    display: block;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #ff5722;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#convertItemsButton:hover {
+    background-color: #e64a19;
+}
+
+.convert-section {
+    display: flex;
+    align-items: center;
+    margin: 10px;
+}
+
+#amountInput {
+    width: 100px;
+    padding: 5px;
+    margin-right: 10px;
+}
+
+#convertButton {
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.converter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #333;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+.rarity-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#rarity-display {
+    margin: 0 10px;
+    font-size: 1.5rem;
+    transition: color 0.5s;
+}
+
+#amount-input {
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #777;
+    margin-bottom: 10px;
+    width: 100px;
+}
+
+#convert-button {
+    padding: 5px 15px;
+    border-radius: 5px;
+    background-color: #444;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#convert-button:hover {
+    background-color: #555;
+}
+
+#rngold-display {
+    margin-top: 10px;
+    font-size: 1.2rem;
+    transition: color 0.5s;
+}
+
+/* Animations */
+@keyframes fadeBlackWhite {
+    0%, 100% { color: black; }
+    50% { color: white; }
+}
+
+@keyframes flashBlackWhite {
+    0%, 49%, 100% { color: black; }
+    50%, 99% { color: white; }
+}
+
+@keyframes flashRedPurpleBlue {
+    0% { color: red; }
+    33% { color: purple; }
+    66% { color: blue; }
+    100% { color: red; }
+}
+
+@keyframes colorCycle {
+    0% { color: red; }
+    20% { color: orange; }
+    40% { color: yellow; }
+    60% { color: green; }
+    80% { color: blue; }
+    100% { color: purple; }
+}
+
+@keyframes flashColorCycle {
+    0%, 19% { color: rgb(186, 0, 186); }
+    20%, 39% { color: rgb(0, 255, 247); }
+    40%, 59% { color: rgb(74, 0, 158); }
+    60%, 79% { color: rgb(255, 13, 102); }
+    80%, 99% { color: rgb(0, 64, 255); }
+    100% { color: rgb(186, 0, 186); }
+}
+
+@keyframes rngoldAnimation {
+    0% { color: #ffffff; }
+    50% { color: #ff0000; }
+    100% { color: #ffffff; }
+}
+
+.rngold-display {
+    animation: rngoldAnimation 2s infinite;
+}
+
+/* Fixes for responsiveness */
+@media (max-width: 768px) {
+    .shop-content {
+        width: 50vw;
+        height: 25vh;
+    }
+}
