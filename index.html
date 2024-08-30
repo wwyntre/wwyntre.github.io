@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wyntre's RNG</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <audio loop autoplay>
+        <source src="song.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <div id="container">
+        <div id="rollSection">
+            <h1>Roll</h1>
+            <button id="rollButton">Roll</button>
+            <div id="itemDisplay">Roll Result</div>
+            <div id="oddsDisplay">Odds</div>
+        </div>
+
+        <div id="inventorySection">
+            <h1>Inventory</h1>
+            <div id="totalRolls">Total Rolls: 0</div>
+            <ul id="inventoryList">
+            </ul>
+        </div>
+
+        <div id="raritiesSection">
+            <h1>Rarities</h1>
+            <div class="rarest"></div>
+            <ul id="rarityList">
+            </ul>
+        </div>
+    </div>
+    <div id="asciiArt">
+        <pre>
+            .--.      .--.   ____     __ ,---.   .--.,---------. .-------.        .-''-.    _ _    .-'''-.         .-------.    ,---.   .--.  .-_'''-.    
+            |  |_     |  |   \   \   /  /|    \  |  |\          \|  _ _   \     .'_ _   \  ( ' )  / _     \        |  _ _   \   |    \  |  | '_( )_   \   
+            | _( )_   |  |    \  _. /  ' |  ,  \ |  | `--.  ,---'| ( ' )  |    / ( ` )   '(_{;}_)(`' )/`--'        | ( ' )  |   |  ,  \ |  ||(_ o _)|  '  
+            |(_ o _)  |  |     _( )_ .'  |  |\_ \|  |    |   \   |(_ o _) /   . (_ o _)  | (_,_)(_ o _).           |(_ o _) /   |  |\_ \|  |. (_,_)/___|  
+            | (_,_) \ |  | ___(_ o _)'   |  _( )_\  |    :_ _:   | (_,_).' __ |  (_,_)___|       (_,_). '.         | (_,_).' __ |  _( )_\  ||  |  .-----. 
+            |  |/    \|  ||   |(_,_)'    | (_ o _)  |    (_I_)   |  |\ \  |  |'  \   .---.      .---.  \  :        |  |\ \  |  || (_ o _)  |'  \  '-   .' 
+            |  '  /\  `  ||   `-'  /     |  (_,_)\  |   (_(=)_)  |  | \ `'   / \  `-'    /      \    `-'  |        |  | \ `'   /|  (_,_)\  | \  `-'`   |  
+            |    /  \    | \      /      |  |    |  |    (_I_)   |  |  \    /   \       /        \       /         |  |  \    / |  |    |  |  \        /  
+            `---'    `---`  `-..-'       '--'    '--'    '---'   ''-'   `'-'     `'-..-'          `-...-'          ''-'   `'-'  '--'    '--'   `'-...-'   
+        </pre>
+    </div>
+
+    <div class="shop-tab">Shop</div>
+
+    <div class="shop-content">
+        <div class="tabs">
+            <div class="tab" data-tab="upgrades">Upgrades</div>
+            <div class="tab" data-tab="shop">Shop</div>
+            <div class="tab" data-tab="themes">Themes</div>
+            <div class="tab" data-tab="converter">Converter</div>
+        </div>
+        <div class="tab-content" id="upgrades">
+            <ul class="shop-list">
+                <li><img src="upgrade1.jpg" alt="Upgrade 1"><br>Upgrade 1</li>
+                <li><img src="upgrade2.jpg" alt="Upgrade 2"><br>Upgrade 2</li>
+            </ul>
+        </div>
+        <div class="tab-content" id="shop">
+            <ul class="shop-list">
+                <li><img src="item1.jpg" alt="Item 1"><br>Item 1</li>
+                <li><img src="item2.jpg" alt="Item 2"><br>Item 2</li>
+            </ul>
+        </div>
+        <div class="tab-content" id="themes">
+            <ul class="shop-list">
+                <li><img src="theme1.jpg" alt="Theme 1"><br>Theme 1</li>
+                <li><img src="theme2.jpg" alt="Theme 2"><br>Theme 2</li>
+            </ul>
+        </div>
+
+        <div class="tab-content" id="converter">
+            <div class="convert-section">
+                <div class="converter">
+                    <div class="rarity-section">
+                        <div id="rarity-display" data-color="black">Basic</div>
+                    </div>
+                
+                    <div class="convert-section">
+                        <input id="amount-input" type="number" value="1">
+                        <button id="left-arrow">&larr;</button>
+                        <button id="convert-button">Convert</button>
+                        <button id="right-arrow">&rarr;</button>
+                    </div>
+                
+                    <div id="rngold-display">RNGold: 100</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RNGold Display (General) -->
+        <div class="rngold-display">
+            <img src="rngold-icon.png" alt="RNGold Icon" id="rngoldIcon">
+            <span id="rngoldValue">0.0</span>
+        </div>
+    </div>
+
+    <script src="rngscript.js"></script>
+</body>
+</html>
