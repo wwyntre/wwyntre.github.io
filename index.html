@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sokowyn</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="bg-particles"></canvas>
+
+    <div id="title-screen" class="screen active">
+        <h1 class="game-title">Sokowyn</h1>
+        <p class="start-text">click anywhere to start</p>
+        <p class="warning">WARNING: play in fullscreen only! This game is built around fullscreen, and only has keyboard supported controls.</p>        
+    </div>
+
+    <div id="pack-select-screen" class="screen">
+        <h2 class="section-title">Select a Pack</h2>
+        <div id="pack-list">
+            </div>
+    </div>
+
+    <div id="level-list-screen" class="screen">
+        <button class="back-button" id="back-to-packs">BACK</button>
+        
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <h2 id="current-pack-title" class="section-title">Pack Name</h2>
+            <div id="level-select-container">
+                </div>
+        </div>
+    </div>
+
+<div id="game-screen" class="screen">
+    <button id="exit-game" class="back-button-top">BACK</button>
+    <div id="level-name-container">
+        <h2 id="level-name-display">Level Name</h2> 
+    </div>
+
+    <canvas id="game-canvas" width="512" height="512"></canvas>
+    
+    <div id="action-icons-container">
+        <img id="undo-icon" src="icons/undo.png" alt="Undo" class="action-icon disabled">
+        <img id="reset-icon" src="icons/reset.png" alt="Reset" class="action-icon disabled">
+        <img id="redo-icon" src="icons/redo.png" alt="Redo" class="action-icon disabled">
+    </div>
+
+    <div id="completion-card" style="display:none;">
+        <h4>Level Complete!</h4>
+        
+        <div class="completion-buttons">
+            <button id="back-to-levels" title="Level Select">
+                <img src="icons/back.png" alt="Level Select">
+            </button>
+            <button id="next-level" title="Next Level">
+                <img src="icons/next.png" alt="Next Level">
+            </button>
+        </div>
+    </div>
+        <audio id="game-music" loop></audio>   
+        <canvas id="particle-canvas"></canvas> 
+    </div>
+    </div>
+    </div>
+    </div>    
+
+    <script src="script.js"></script>
+    <script src="game.js"></script>
+    <script src="music.js"></script>   
+    <script src="particles.js"></script>           
+</body>
+</html>

@@ -1,0 +1,533 @@
+:root {
+    --bg-start: #110014;
+    --bg-end: #570b8e;
+    --text-color: #E0E0FF;
+    --pack-bg: rgba(81, 81, 81, 0.215);
+    --pack-border: #ffffff;
+    --level-highlight: #A020F0;
+}
+
+scroll-container::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+    color: var(--text-color);
+    font-family: 'Press Start 2P', monospace;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease-in-out;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.screen.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#title-screen {
+    cursor: pointer;
+}
+
+.game-title {
+    font-size: 48px;
+    text-shadow: 4px 4px 0 #000;
+}
+
+.start-text {
+    font-size: 16px;
+    margin-top: 30px;
+    animation: blink 1s steps(1, end) infinite;
+}
+
+.warning {
+    position: absolute;
+    font-size: 11px;
+    background-color: #00000046;
+    margin-top: 500px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+}
+
+@keyframes blink {
+    from, to { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+#pack-select-screen {
+    position: absolute; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    
+    /* Keep your transition and transform */
+    transform: translateY(-100vh); 
+    transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1); 
+    
+    /* Layout */
+    display: flex; 
+    flex-direction: column;
+    align-items: center; /* Center items horizontally */
+    
+    /* SCROLL FIXES */
+    overflow-y: auto;    /* Enable scrolling */
+    overflow-x: hidden;  /* Prevent horizontal wiggle */
+    box-sizing: border-box; /* Crucial: ensures padding is INSIDE the 100vh */
+    padding: 50px 20px;  /* Space at top and bottom */
+}
+
+/* Ensure the children inside don't shrink to fit the screen */
+#pack-select-screen > * {
+    flex-shrink: 0; 
+}
+
+#level-select-container {
+    width: 100vw;
+    max-width: none;
+    background: none;
+    padding-left: 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100vh; 
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding-bottom: 80px;
+}
+
+#level-select-container > * {
+    flex-shrink: 0;
+}
+
+#pack-select-screen.active {
+    transform: translateY(0); 
+}
+
+.section-title {
+    font-size: 24px;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 0 #000;
+}
+
+#pack-list {
+    width: 80%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.pack-card {
+    background-color: var(--pack-bg);
+    border: 3px solid var(--pack-border);
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pack-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 4px var(--pack-border);
+}
+
+.pack-name {
+    font-size: 18px;
+    margin: 0;
+}
+
+.pack-description {
+    font-size: 10px;
+    opacity: 0.8;
+    margin-top: 10px;
+    line-height: 1.5;
+}
+
+.pack-difficulty {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    font-size: 14px;
+    color: gold;
+    margin-top: 5px;
+}
+
+.difficulty-star {
+    width: 15px;
+    height: 15px;
+    margin: 0 1px;
+    image-rendering: pixelated;
+}
+
+#level-list-screen {
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 50px;
+}
+
+#current-pack-title {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+}
+
+#level-select-container::-webkit-scrollbar {
+    display: none;
+}
+
+.level-list-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--pack-bg);
+    border: 2px solid var(--pack-border);
+    border-radius: 4px;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease-out, background-color 0.2s;
+    transform: translateX(0);
+    width: 50vw;
+    max-width: 600px;
+}
+
+.level-list-item:hover {
+    transform: translateX(20px); 
+    background-color: rgba(160, 32, 240, 0.2); 
+    border-color: var(--level-highlight);
+}
+
+.level-list-item.keyboard-selected { 
+    transform: translateX(20px);
+    background-color: rgba(160, 32, 240, 0.4);
+    border-color: var(--level-highlight);
+}
+
+.level-list-info {
+    flex-grow: 1;
+    padding-left: 15px;
+}
+
+.level-name-text {
+    font-size: 14px;
+    margin: 0;
+}
+
+.level-preview-canvas {
+    background-color: #00000000; 
+    width: 64px;
+    height: 64px;
+}
+
+.back-button {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    padding: 10px 15px;
+    background-color: var(--pack-bg);
+    border: 2px solid var(--pack-border);
+    color: var(--text-color);
+    cursor: pointer;
+    text-shadow: 1px 1px #000;
+    transition: transform 0.1s, background-color 0.1s;
+    white-space: nowrap;
+    position: static;
+    margin-top: -25px;
+}
+
+.back-button:hover {
+    transform: scale(1.05);
+    background-color: rgba(160, 32, 240, 0.2);
+}
+
+#game-screen {
+    width: 1300px;
+    height: 1000px;
+    background-color: #11111100;
+    margin-top: 10%;
+    transition: transform 0.4s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.slide-push-left {
+    transform: translateX(-100vw);
+}
+
+.slide-pull-left {
+    transform: translateX(100vw);
+}
+
+.no-transition {
+    transition: none;
+}
+
+.slide-exit-right {
+    transform: translateX(100vw);
+    transition: transform 0.8s ease-in-out;
+}
+
+.back-button-top {
+    position: absolute; 
+    top: 75px; 
+    left: 10px;
+    z-index: 100;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    padding: 10px 15px;
+    background-color: var(--pack-bg);
+    border: 2px solid var(--pack-border);
+    color: var(--text-color);
+    cursor: pointer;
+    text-shadow: 1px 1px #000;
+    transition: transform 0.1s, background-color 0.1s;
+    white-space: nowrap;
+}
+
+.back-button-top:hover {
+    background-color: var(--pack-border);
+    transform: scale(1.05);
+}
+
+
+
+
+
+
+#completion-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 50%;
+  margin-top: 18%;
+  margin-left: 25%;
+
+  background-color: rgba(0, 0, 0, 0.85);
+
+  z-index: 100;
+  padding: 20px;
+  box-sizing: border-box;
+
+  border: 15px solid white;
+}
+
+#completion-card::before,
+#completion-card::after {
+  content: "";
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  pointer-events: none;
+}
+
+#completion-card::before {
+  top: 0;
+  left: 0;
+
+  background:
+    linear-gradient(#fff 0 0) left top / 30px 15px no-repeat,
+    linear-gradient(#fff 0 0) left top / 15px 30px no-repeat;
+
+  box-shadow:
+    calc(100% - 30px) calc(100% - 30px) 0 0 #fff;
+}
+
+#completion-card::after {
+  top: 0;
+  right: 0;
+
+  background:
+    linear-gradient(#fff 0 0) right top / 30px 15px no-repeat,
+    linear-gradient(#fff 0 0) right top / 15px 30px no-repeat;
+
+  box-shadow:
+    calc(-100% + 30px) calc(100% - 30px) 0 0 #fff;
+}
+
+#completion-card h4 {
+    font-size: 30px;
+    text-transform: uppercase;
+    justify-self: center;
+    animation: rainbowCycle 5s linear infinite, wobble 2s ease-in-out infinite alternate;
+    transform: rotate(0.5deg);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    margin-top: 20%;
+    white-space: nowrap;
+}
+
+.completion-buttons {
+    display: flex;
+    gap: 100px;
+    margin-top: 200px;
+    justify-self: center;
+}
+
+#completion-card button {
+  image-rendering: pixelated;
+  width: 80px;
+  height: 80px;
+
+  border-radius: 0;
+
+  background: transparent;
+  cursor: pointer;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  box-shadow:
+    0 0 0 4px #fff,
+    4px 4px 0 4px #000;
+
+  transition: transform 0.1s;
+}
+
+
+#completion-card button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+#completion-card button img {
+    width: 48px; 
+    height: 48px;
+}
+
+@keyframes wobble {
+    0% { transform: rotate(1.5deg); }
+    100% { transform: rotate(-0.5deg); }
+}
+
+@keyframes rainbowCycle {
+    0% { color: rgb(255, 102, 102); }
+    16% { color: rgb(255, 255, 102); }
+    33% { color: rgb(102, 255, 102); }
+    50% { color: rgb(102, 255, 255); }
+    66% { color: rgb(102, 102, 255); }
+    83% { color: rgb(255, 102, 255); }
+    100% { color: rgb(255, 102, 102); }
+}
+
+/* --- Level Name Styling --- */
+#level-name-container {
+    position: absolute;
+    display: flex;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    z-index: 100;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    font-size: 15px;
+    animation: float 2.5s ease-in-out infinite;
+    white-space: nowrap;
+}
+
+@keyframes float {
+    0% {
+        transform: translate(-50%, 0);
+        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4); 
+    }
+    50% {
+        transform: translate(-50%, -7px); 
+        text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6); 
+    }
+    100% {
+        transform: translate(-50%, 0);
+        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4); 
+    }
+}
+
+#action-icons-container {
+    position: absolute;
+    bottom: 210px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 30px;
+    z-index: 10;
+}
+
+.action-icon {
+    width: 40px; 
+    height: 40px;
+    cursor: pointer;
+    opacity: 0.3;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.action-icon.disabled {
+    opacity: 0;
+    cursor: default;
+}
+
+.action-icon:not(.disabled) {
+    opacity: 0.5; 
+}
+
+.action-icon.used {
+    opacity: 1.0; 
+}
+
+#pack-select-screen, 
+#level-list-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+#title-screen, 
+#pack-select-screen {
+    position: absolute; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.title-screen-out {
+    transform: translateY(100vh); 
+}
+
+.pack-screen-start {
+    transform: translateY(-100vh); 
+}
+
+#bg-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+}

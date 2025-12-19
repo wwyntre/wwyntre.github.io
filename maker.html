@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>puzzle maker</title>
+    <style>
+        /* Minimalist Styles */
+        body {
+            margin: 20px;
+            background-color: #ffffff;
+        }
+
+        #controls, #output {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        #grid-container {
+            display: inline-block; /* Helps center the grid and keeps it contained */
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+
+        .grid-row {
+            display: flex;
+        }
+
+        .tile {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #eee;
+            box-sizing: border-box;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.1s;
+        }
+
+        .tile[data-value="0"] { background-color: #ffffff; color: #000000; }
+        .tile[data-value="1"] { background-color: #c800ff; color: #fff; }
+        .tile[data-value="2"] { background-color: #3e0037; color: #ffffff; }
+        .tile[data-value="3"] { background-color: #ff1010; color: #000; }
+        .tile[data-value="4"] { background-color: #4397ff; color: #000; }
+        .tile[data-value="5"] { background-color: #180022; color: #ffffff; }
+        .tile[data-value="6"] { background-color: #00405b; color: #ffffff; }
+        .tile[data-value="7"] { background-color: #ff72c0; color: #000; }             
+        
+        .tile:hover {
+            opacity: 0.8;
+        }
+
+        .active-tool {
+            border: 2px solid blue;
+            background-color: #e6f0ff !important;
+        }
+
+        button {
+            padding: 8px 15px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        #export-button {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #export-code {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            min-height: 50px;
+            font-family: monospace;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>sokowyn puzzle code maker</h1>
+
+    <div id="controls">
+        <h3>Grid Size</h3>
+        <label for="rows">columns:</label>
+        <input type="number" id="rows" value="5" min="1">
+        <label for="cols">rows:</label>
+        <input type="number" id="cols" value="5" min="1">
+        <button onclick="generateGrid()">generate</button>
+        
+        <hr style="margin: 15px 0;">
+
+        <h3>Drawing Tools</h3>
+        <p>Current Tool: <span id="current-tool-display">0 (empty)</span></p>
+        <div id="tool-buttons">
+            </div>
+    </div>
+
+    <div id="grid-container">
+        </div>
+
+    <div id="output">
+        <button id="export-button" onclick="exportGrid()">export</button>
+        <textarea id="export-code" readonly placeholder="export yo shi bro"></textarea>
+    </div>
+
+    <script>
+        const TILE_MAP = {
+            '0': 'Empty',
+            '1': 'Wall',
+            '2': 'Floor',
+            '3': 'Player',
+            '4': 'Box',
+            '5': 'Goal',
+            '6': 'Playergoal',
+            '7': 'Boxgoal'       
+        };
+
+        const START_ROWS = 5;
+        const START_COLS = 5;
+        const GRID_CONTAINER = document.getElementById('grid-container');
+        const EXPORT_CODE_AREA = document.getElementById('export-code');
+        const TOOL_BUTTONS_CONTAINER = document.getElementById('tool-buttons');
+        const CURRENT_TOOL_DISPLAY = document.getElementById('current-tool-display');
+        
+        let currentTool = '0';
+        let isDrawing = false;
+
+        function generateGrid() {
+            const rows = parseInt(document.getElementById('rows').value) || START_ROWS;
+            const cols = parseInt(document.getElementById('cols').value) || START_COLS;
+
+            if (rows < 1 || cols < 1) {
+                alert("NO");
+                return;
+            }
+
+            GRID_CONTAINER.innerHTML = '';
+
+            for (let r = 0; r < rows; r++) {
+                const rowElement = document.createElement('div');
+                rowElement.className = 'grid-row';
+                
+                for (let c = 0; c < cols; c++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    const initialValue = '0'; 
+                    tile.setAttribute('data-value', initialValue);
+                    tile.textContent = initialValue;
+
+                    tile.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        isDrawing = true;
+                        setTileValue(tile, currentTool);
+                    });
+
+                    tile.addEventListener('mouseenter', () => {
+                        if (isDrawing) {
+                            setTileValue(tile, currentTool);
+                        }
+                    });
+
+                    tile.addEventListener('click', () => {
+                         setTileValue(tile, currentTool);
+                    });
+
+
+                    rowElement.appendChild(tile);
+                }
+                GRID_CONTAINER.appendChild(rowElement);
+            }
+        }
+
+        document.addEventListener('mouseup', () => {
+            isDrawing = false;
+        });
+
+        function setTileValue(tile, value) {
+            tile.setAttribute('data-value', value);
+            tile.textContent = value;
+        }
+
+        function exportGrid() {
+            const rows = document.querySelectorAll('.grid-row');
+            if (rows.length === 0) {
+                EXPORT_CODE_AREA.value = 'Error: Grid is empty. Generate a grid first.';
+                return;
+            }
+
+            let mapCode = '';
+            
+            rows.forEach((row, rowIndex) => {
+                const tiles = row.querySelectorAll('.tile');
+                let rowCode = '';
+                
+                tiles.forEach(tile => {
+                    rowCode += tile.getAttribute('data-value');
+                });
+                
+                mapCode += rowCode;
+                
+                if (rowIndex < rows.length - 1) {
+                    mapCode += '-';
+                }
+            });
+
+            EXPORT_CODE_AREA.value = mapCode;
+            EXPORT_CODE_AREA.select();
+            document.execCommand('copy');
+            alert('Grid code copied to clipboard (and displayed in the text area)!');
+        }
+
+        function createToolButtons() {
+            for (const value in TILE_MAP) {
+                const description = TILE_MAP[value];
+                const button = document.createElement('button');
+                button.textContent = `${value} (${description})`;
+                button.setAttribute('data-tool-value', value);
+                button.onclick = () => setCurrentTool(value);
+                TOOL_BUTTONS_CONTAINER.appendChild(button);
+            }
+        }
+
+        function setCurrentTool(value) {
+            currentTool = value;
+            CURRENT_TOOL_DISPLAY.textContent = `${value} (${TILE_MAP[value]})`;
+
+            document.querySelectorAll('#tool-buttons button').forEach(button => {
+                button.classList.remove('active-tool');
+                if (button.getAttribute('data-tool-value') === value) {
+                    button.classList.add('active-tool');
+                }
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            createToolButtons();
+            setCurrentTool('0');
+            generateGrid();
+        });
+
+    </script>
+
+</body>
+</html>
