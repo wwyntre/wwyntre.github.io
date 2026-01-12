@@ -4,7 +4,7 @@
     --text-color: #E0E0FF;
     --pack-bg: rgba(81, 81, 81, 0.215);
     --pack-border: #ffffff;
-    --level-highlight: #A020F0;
+    --level-highlight: #00d5ff;
 }
 
 scroll-container::-webkit-scrollbar {
@@ -15,6 +15,7 @@ body {
     margin: 0;
     padding: 0;
     background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+    transition: --bg-start 1.5s ease, --bg-end 1.5s ease;
     color: var(--text-color);
     font-family: 'Press Start 2P', monospace;
     height: 100vh;
@@ -22,6 +23,18 @@ body {
     justify-content: center;
     align-items: center;
     overflow: hidden;
+}
+
+@property --bg-start {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #110014;
+}
+
+@property --bg-end {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #570b8e;
 }
 
 .screen {
@@ -69,6 +82,7 @@ body {
     left: 0;
     width: 100%;
     text-align: center;
+    animation: blink 1s steps(1, end) infinite;
 }
 
 @keyframes blink {
@@ -82,26 +96,38 @@ body {
     left: 0;
     width: 100%;
     height: 100vh;
-    
-    /* Keep your transition and transform */
     transform: translateY(-100vh); 
     transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1); 
-    
-    /* Layout */
     display: flex; 
     flex-direction: column;
-    align-items: center; /* Center items horizontally */
-    
-    /* SCROLL FIXES */
-    overflow-y: auto;    /* Enable scrolling */
-    overflow-x: hidden;  /* Prevent horizontal wiggle */
-    box-sizing: border-box; /* Crucial: ensures padding is INSIDE the 100vh */
-    padding: 50px 20px;  /* Space at top and bottom */
+    align-items: center;
+    justify-content: flex-start;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    padding-bottom: 100px;
+    -webkit-mask-image: linear-gradient(to bottom, 
+        black 0%, 
+        black 85%, 
+        transparent 100%
+    );
+    mask-image: linear-gradient(to bottom, 
+        black 0%, 
+        black 85%, 
+        transparent 100%
+    );
+    mask-attachment: fixed;
+    -webkit-mask-attachment: fixed;
 }
 
-/* Ensure the children inside don't shrink to fit the screen */
 #pack-select-screen > * {
     flex-shrink: 0; 
+}
+
+#pack-select-screen::-webkit-scrollbar {
+    display: none;
 }
 
 #level-select-container {
@@ -138,6 +164,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    flex-shrink: 0;
 }
 
 .pack-card {
@@ -238,7 +265,7 @@ body {
 }
 
 .level-preview-canvas {
-    background-color: #00000000; 
+    background-color: rgba(0, 0, 0, 0); 
     width: 64px;
     height: 64px;
 }
@@ -372,7 +399,7 @@ body {
     animation: rainbowCycle 5s linear infinite, wobble 2s ease-in-out infinite alternate;
     transform: rotate(0.5deg);
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-    margin-top: 20%;
+    margin-top: 15%;
     white-space: nowrap;
 }
 
@@ -430,7 +457,12 @@ body {
     100% { color: rgb(255, 102, 102); }
 }
 
-/* --- Level Name Styling --- */
+
+
+
+
+
+
 #level-name-container {
     position: absolute;
     display: flex;
@@ -498,7 +530,6 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden;
 }
 
 #title-screen, 
@@ -527,4 +558,207 @@ body {
     height: 100vh;
     z-index: -1;
     pointer-events: none;
+}
+
+.final-move-display{
+    text-align: center;
+    justify-self: center;
+    position: absolute;
+    font-family: 'Press Start 2P';
+    font-size: 18px;
+    margin-top: 30px;
+}
+
+.move-counter{
+    justify-self: center;
+    margin-top: 41.7%;
+    position: absolute;
+    margin-left: 83%;
+    white-space: nowrap;
+    overflow-x: visible;
+    max-width: 50%;
+}
+
+#settings-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: none;
+    cursor: pointer;
+    z-index: 1000;
+    padding: 10px;
+    width: 24px;
+    height: 24px;
+    justify-items: center;
+}
+
+#settings-toggle img {
+    width: 24px;
+    height: 24px; 
+    top: -1px;
+    right: -2px;
+    position: absolute;       
+}
+
+#settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+#settings-overlay.active {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#settings-window {
+    background: var(--bg-start);
+    border: 10px solid white;
+    padding: 40px;
+    width: 400px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.setting-item {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.checkmark-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.danger-button {
+    background: #890000;
+    color: #ffffff;
+    border: none;
+    padding: 10px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.danger-button:hover {
+    background: #ff0000;
+    color: #000000;    
+    animation: shake 0.3s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes shake {
+    0% { transform: translate(1px, 1px)}
+    10.5% { transform: translate(-1px, -2px)}
+    21% { transform: translate(-3px, 0px)}
+    31.5% { transform: translate(3px, 2px)}
+    42% { transform: translate(1px, -1px)}
+    52.5% { transform: translate(-1px, 2px)}
+    63% { transform: translate(-3px, 1px)}
+    73.5% { transform: translate(3px, 1px)}
+    84% { transform: translate(-1px, -1px)}
+    94.5% { transform: translate(1px, 2px)}
+    100% { transform: translate(1px, -2px)}
+}
+
+.pack-header-stats {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.pack-stats-text {
+    font-size: 10px;
+    font-family: 'Press Start 2P', cursive;
+    color: #00ff00;
+    text-shadow: 1px 1px 0px #000;
+}
+
+.mini-progress-bg {
+    width: 60px;
+    height: 6px;
+    background: #222;
+    border: 1px solid #000;
+    overflow: hidden;
+    border-radius: 5px;
+}
+
+.mini-progress-fill {
+    height: 100%;
+    background: #00ff00;
+    transition: width 0.3s ease;
+}
+
+.pack-card:has(.checkmark-icon) .mini-progress-fill,
+.pack-card:has(.checkmark-icon) .pack-stats-text {
+    background-color: #ffd700;
+    color: #ffd700;
+}
+
+@keyframes rainbow-solid {
+    0%   { background-color: #ff0000; }
+    14%  { background-color: #ff8000; }
+    28%  { background-color: #ffff00; }
+    42%  { background-color: #00ff00; }
+    57%  { background-color: #00ffff; }
+    71%  { background-color: #0000ff; }
+    85%  { background-color: #8000ff; }
+    100% { background-color: #ff0000; }
+}
+
+.mini-progress-fill.is-complete {
+    animation: rainbow-solid 3s linear infinite;
+    border: none;
+}
+
+.pack-stats-text.is-complete {
+    color: #fff;
+    animation: rainbow-text 1s infinite;
+}
+
+@keyframes rainbow-text {
+    0% { color: #ff0000; }
+    33% { color: #0800ff; }
+    66% { color: #00ff00; }
+    100% { color: #ff0000; }
+}
+
+.editor-card {
+    border: 2px dashed var(--level-highlight);
+    background: rgba(160, 32, 240, 0.1);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.editor-card:hover {
+    border-style: solid;
+    border-color: #00ffff;
+    background: #22002e;
+    transform: translateY(-5px);
+}
+
+.editor-card .pack-name {
+    color: var(--level-highlight);
 }

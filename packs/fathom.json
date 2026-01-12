@@ -1,7 +1,7 @@
 {
   "packName": "Fathom",
   "difficulty": 4,
-  "description": "Very difficult levels designed for sokowyn pros.",
+  "description": "Very difficult levels designed to be challenging for most players.",
   "levels": [   
     {
       "levelName": "Ye of Little Faith",
@@ -10,10 +10,6 @@
     {
       "levelName": "Little Tree",
       "code": "01111000-01221111-11722421-12222521-12722121-11127731-00122111-00111100"
-    },     
-    {
-      "levelName": "Yes, This Is A 4 Star Puzzle",
-      "code": "11111100-12252100-12222111-12144521-15221121-13421121-11122221-00111111"
     },    
     {
       "levelName": "Snowflake 2",
@@ -22,6 +18,10 @@
     {
       "levelName": "The Grinder",
       "code": "0011111111-0012221221-0012524521-0111411221-0155211411-1124742221-1227212221-1222611111-1122210000-0111110000"
-    }    
+    },
+    {
+      "levelName": "The Holy Statue",
+      "code": "000011111000-000112321100-011122122111-012221112221-014222122221-012111111121-112521112221-154272122111-122522122110-111221112210-012211111211-012222224221-011221112221-001111111111"
+    }        
   ]
 }

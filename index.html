@@ -6,7 +6,7 @@
     <title>Sokowyn</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/x-icon" href="player.png">
+    <link rel="icon" type="image/x-icon" href="Sprites/player.png">
 </head>
 <body>
     <canvas id="bg-particles"></canvas>
@@ -14,7 +14,7 @@
     <div id="title-screen" class="screen active">
         <h1 class="game-title">Sokowyn</h1>
         <p class="start-text">click anywhere to start</p>
-        <p class="warning">WARNING: play in fullscreen only! This game is built around fullscreen, and only has keyboard supported controls.</p>        
+        <p class="warning">WARNING: play on PC only! This game doesn't support mobile controls, though there will be in the future.</p>        
     </div>
 
     <div id="pack-select-screen" class="screen">
@@ -35,6 +35,7 @@
 
 <div id="game-screen" class="screen">
     <button id="exit-game" class="back-button-top">BACK</button>
+    <div id="move-counter-container" class="move-counter">MOVES: <span id="move-count">0</span></div>
     <div id="level-name-container">
         <h2 id="level-name-display">Level Name</h2> 
     </div>
@@ -49,6 +50,7 @@
 
     <div id="completion-card" style="display:none;">
         <h4>Level Complete!</h4>
+        <p id="final-move-display" class="final-move-display">MOVES: 0</p>
         
         <div class="completion-buttons">
             <button id="back-to-levels" title="Level Select">
@@ -62,13 +64,33 @@
         <audio id="game-music" loop></audio>   
         <canvas id="particle-canvas"></canvas> 
     </div>
-    </div>
-    </div>
-    </div>    
 
+    <button id="settings-toggle" onclick="toggleSettings()">
+        <img src="icons/settings.png" alt="Settings">
+    </button>
+    
+    <div id="settings-overlay" class="overlay-hidden">
+    <div id="settings-window">
+        <h3>SETTINGS</h3>
+        <hr>
+        <div class="setting-item">
+            <label>MUSIC VOLUME</label>
+            <input type="range" id="music-range" min="0" max="1" step="0.01" oninput="setMusicVolume(this.value)">
+        </div>
+        <div class="setting-item">
+            <label>SFX VOLUME</label>
+            <input type="range" id="sfx-range" min="0" max="1" step="0.01" oninput="setSFXVolume(this.value)">
+        </div>
+        <div class="setting-item" style="margin-top: 20px;">
+            <button class="danger-button" onclick="clearAllProgress()">CLEAR ALL PROGRESS</button>
+        </div>
+        <button class="back-button" onclick="toggleSettings()" style="margin-top: 20px;">CLOSE</button>
+    </div>
+    </div>
+
+    <script src="music.js"></script>  
     <script src="script.js"></script>
-    <script src="game.js"></script>
-    <script src="music.js"></script>   
+    <script src="game.js"></script> 
     <script src="particles.js"></script>           
 </body>
 </html>

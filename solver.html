@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sokowyn Solver</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: #eee; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    .container { width: 100%; max-width: 1000px; display: flex; flex-direction: column; gap: 10px; }
+    textarea { width: 100%; height: 60px; background: #000; color: #0f0; border: 1px solid #444; padding: 10px; font-family: monospace; resize: none; }
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; background: #2a2a2a; padding: 15px; justify-content: center; align-items: center; }
+    button { background: #444; color: white; border: none; padding: 8px 16px; cursor: pointer; font-weight: bold; }
+    button:disabled { opacity: 0.3; cursor: not-allowed; }
+    #solveBtn { background: #2ecc71; }
+    canvas { background: #000; margin: 10px auto; display: block; image-rendering: pixelated; }
+    #status { font-weight: bold; color: #3498db; text-align: center; font-size: 1.1em; }
+    .stats { color: #888; text-align: center; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2 style="text-align:center">Sokowyn Solver</h2>
+  <textarea id="levelInput">1111111-1000001-1047501-1003001-1111111</textarea>
+  
+  <div class="controls">
+    <button id="solveBtn">START SOLVER</button>
+    <div style="width:2px; height:30px; background:#444"></div>
+    <button id="prevBtn" disabled>Step</button>
+    <button id="playBtn" disabled>Play</button>
+    <button id="nextBtn" disabled>Step </button>
+    <button id="resetBtn" disabled>Reset</button>
+    <input type="range" id="speedRange" min="30" max="450" value="400">
+  </div>
+
+  <div id="status">Ready</div>
+  <canvas id="gameCanvas"></canvas>
+  <div id="statsDisplay" class="stats"></div>
+</div>
+
+<script>
+//ZOBRIST HASHING, XOR GATES MY BELOVED
+let zobristTable = [];
+function initZobrist(rows, cols) {
+    zobristTable = [];
+    for (let i = 0; i < rows * cols; i++) {
+        zobristTable[i] = {
+            box: Math.floor(Math.random() * 2147483647),
+            player: Math.floor(Math.random() * 2147483647)
+        };
+    }
+}
+
+function computeHash(boxes, reachableArea) {
+    let hash = 0;
+    for (const b of boxes) {
+        hash ^= zobristTable[b.r * currentLevelData.cols + b.c].box;
+    }
+    const playerRep = Math.min(...[...reachableArea].map(k => {
+        const [r,c] = k.split(',').map(Number);
+        return r * currentLevelData.cols + c;
+    }));
+    hash ^= zobristTable[playerRep].player;
+    return hash;
+}
+
+//RENDERING
+const assets = {};
+const spriteNames = ['floor', 'player', 'box', 'wall', 'goal'];
+let assetsLoaded = 0;
+const TILE_SIZE = 32;
+
+function loadAssets(callback) {
+  spriteNames.forEach(name => {
+    const img = new Image();
+    img.src = `Sprites/${name}.png`;
+    img.onload = () => { assets[name] = img; if(++assetsLoaded === spriteNames.length) callback(); };
+    img.onerror = () => {
+      const c = document.createElement('canvas'); c.width = c.height = 64;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = {floor:'#222', player:'#e74c3c', box:'#f39c12', wall:'#7f8c8d', goal:'#2ecc71'}[name];
+      ctx.fillRect(0,0,64,64);
+      assets[name] = c;
+      if(++assetsLoaded === spriteNames.length) callback();
+    };
+  });
+}
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+function draw() {
+  if (!currentLevelData || !history[currentStep]) return;
+  const state = history[currentStep];
+  canvas.width = currentLevelData.cols * TILE_SIZE;
+  canvas.height = currentLevelData.rows * TILE_SIZE;
+
+  for (let r = 0; r < currentLevelData.rows; r++) {
+    for (let c = 0; c < currentLevelData.cols; c++) {
+      const k = `${r},${c}`;
+      // Layer 1: Floor/Wall
+      ctx.drawImage(currentLevelData.walls.has(k) ? assets.wall : assets.floor, c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      // Layer 2: Goal
+      if (currentLevelData.goals.some(g => g.r === r && g.c === c)) ctx.drawImage(assets.goal, c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      // Layer 3: Box
+      if (state.boxes.some(b => b.r === r && b.c === c)) ctx.drawImage(assets.box, c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      // Layer 4: Player
+      if (state.player.r === r && state.player.c === c) ctx.drawImage(assets.player, c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+    }
+  }
+}
+
+//DEADLOCK DETECTION ENGINE
+function findStaticDeadlocks(walls, goals, rows, cols) {
+  const canReachGoal = new Set();
+  const queue = [];
+  goals.forEach(g => {
+    const k = `${g.r},${g.c}`;
+    canReachGoal.add(k);
+    queue.push({r: g.r, c: g.c});
+  });
+
+  while (queue.length) {
+    const curr = queue.shift();
+    for (const d of [{r:-1,c:0},{r:1,c:0},{r:0,c:-1},{r:0,c:1}]) {
+      const boxR = curr.r + d.r, boxC = curr.c + d.c;
+      const playerR = curr.r + (d.r * 2), playerC = curr.c + (d.c * 2);
+      const bK = `${boxR},${boxC}`, pK = `${playerR},${playerC}`;
+      if (boxR>=0 && boxR<rows && boxC>=0 && boxC<cols && !walls.has(bK) && !walls.has(pK) && !canReachGoal.has(bK)) {
+        canReachGoal.add(bK);
+        queue.push({r: boxR, c: boxC});
+      }
+    }
+  }
+  const deadlocks = new Set();
+  for (let r=0; r<rows; r++) for (let c=0; c<cols; c++) {
+    if (!walls.has(`${r},${c}`) && !canReachGoal.has(`${r},${c}`)) deadlocks.add(`${r},${c}`);
+  }
+  return deadlocks;
+}
+
+function isDynamicDeadlocked(boxes, levelData) {
+  const boxSet = new Set(boxes.map(b => `${b.r},${b.c}`));
+  const isGoal = (r, c) => levelData.goalSet.has(`${r},${c}`);
+  const isBlocked = (r, c) => levelData.walls.has(`${r},${c}`) || boxSet.has(`${r},${c}`);
+
+  for (const b of boxes) {
+    if (isGoal(b.r, b.c)) continue;
+
+    const check2x2 = (dr, dc) => isBlocked(b.r+dr, b.c) && isBlocked(b.r, b.c+dc) && isBlocked(b.r+dr, b.c+dc);
+    if (check2x2(1,1) || check2x2(1,-1) || check2x2(-1,1) || check2x2(-1,-1)) return true;
+
+    if (levelData.staticDeadlocks.has(`${b.r},${b.c}`)) return true;
+  }
+  return false;
+}
+
+//CORE SOLVER (A*)
+
+class PriorityQueue {
+  constructor() { this.n = []; }
+  push(node) {
+    let l=0, h=this.n.length;
+    while(l<h) { let m=(l+h)>>>1; if(this.n[m].f < node.f) l=m+1; else h=m; }
+    this.n.splice(l,0,node);
+  }
+  pop() { return this.n.shift(); }
+}
+
+function getAdvancedHeuristic(boxes, goals) {
+  return boxes.reduce((acc, b) => acc + Math.min(...goals.map(g => Math.abs(b.r-g.r) + Math.abs(b.c-g.c))), 0);
+}
+
+let currentLevelData, history = [], currentStep = 0, isPlaying = false;
+const DIRS = {'U':{dr:-1,dc:0}, 'D':{dr:1,dc:0}, 'L':{dr:0,dc:-1}, 'R':{dr:0,dc:1}};
+
+async function solve() {
+  const raw = document.getElementById("levelInput").value.trim().split("-");
+  let p, boxes=[], goals=[], walls=new Set();
+  raw.forEach((row,r) => row.split("").forEach((v,c) => {
+    const n = parseInt(v); const k = `${r},${c}`;
+    if(n===1) walls.add(k);
+    if(n===3||n===6) p={r,c};
+    if(n===4||n===7) boxes.push({r,c});
+    if(n===5||n===6||n===7) goals.push({r,c});
+  }));
+
+  const staticDeadlocks = findStaticDeadlocks(walls, goals, raw.length, raw[0].length);
+  currentLevelData = {
+    player: p, boxes, goals, walls, 
+    rows: raw.length, cols: raw[0].length, 
+    staticDeadlocks,
+    goalSet: new Set(goals.map(g => `${g.r},${g.c}`))
+  };
+  
+  const pq = new PriorityQueue();
+  const visited = new Set();
+  const getVKey = (b, r) => b.map(x=>`${x.r},${x.c}`).sort().join("|") + "#" + [...r].sort()[0];
+
+  const getReachable = (pPos, bPos) => {
+    const block = new Set([...walls, ...bPos.map(b=>`${b.r},${b.c}`)]);
+    const reach = new Set(); const q = [pPos]; reach.add(`${pPos.r},${pPos.c}`);
+    while(q.length) {
+      const curr = q.shift();
+      for(const d of Object.values(DIRS)) {
+        const nr=curr.r+d.dr, nc=curr.c+d.dc, k=`${nr},${nc}`;
+        if(nr>=0 && nr<raw.length && nc>=0 && nc<raw[0].length && !block.has(k) && !reach.has(k)) {
+          reach.add(k); q.push({r:nr,c:nc});
+        }
+      }
+    }
+    return reach;
+  };
+
+  pq.push({boxes, player:p, reachable:getReachable(p, boxes), moves:[], g:0, f:getAdvancedHeuristic(boxes, goals)});
+  let explored = 0;
+
+  while(pq.n.length) {
+    const s = pq.pop(); explored++;
+    if(goals.every(g => s.boxes.some(b => b.r===g.r && b.c===g.c))) {
+      animatePath(s.moves);
+      return explored;
+    }
+
+    if(explored % 2000 === 0) {
+      document.getElementById("status").textContent = `Searching: ${explored} states...`;
+      await new Promise(r => setTimeout(r,0));
+    }
+
+    s.boxes.forEach((box, i) => {
+      for(const [name, d] of Object.entries(DIRS)) {
+        const pr=box.r-d.dr, pc=box.c-d.dc, tr=box.r+d.dr, tc=box.c+d.dc, tK=`${tr},${tc}`;
+        if(!s.reachable.has(`${pr},${pc}`)) continue;
+        if(walls.has(tK) || s.boxes.some(b=>b.r===tr && b.c===tc)) continue;
+
+        const nb = s.boxes.map((b,idx)=>idx===i?{r:tr,c:tc}:b);
+        if (isDynamicDeadlocked(nb, currentLevelData)) continue;
+
+        const nr = getReachable({r:box.r, c:box.c}, nb);
+        const k = getVKey(nb, nr);
+        if(!visited.has(k)) {
+          visited.add(k);
+          pq.push({
+            boxes: nb, player: {r:box.r, c:box.c}, reachable: nr,
+            moves: [...s.moves, {dir:name, bIdx:i, pushPos:{r:pr,c:pc}}],
+            g: s.g + 1, f: s.g + 1 + getAdvancedHeuristic(nb, goals)
+          });
+        }
+      }
+    });
+  }
+  return -1;
+}
+
+//PATH VISUALIZER
+
+function getWalkPath(start, end, boxes, walls, rows, cols) {
+  const boxSet = new Set(boxes.map(b => `${b.r},${b.c}`));
+  const q = [[start]]; const v = new Set([`${start.r},${start.c}`]);
+  while(q.length) {
+    const p = q.shift(); const c = p[p.length-1];
+    if(c.r===end.r && c.c===end.c) return p;
+    for(const d of Object.values(DIRS)) {
+      const nr=c.r+d.dr, nc=c.c+d.dc, k=`${nr},${nc}`;
+      if(nr>=0&&nr<rows&&nc>=0&&nc<cols&&!walls.has(k)&&!boxSet.has(k)&&!v.has(k)) {
+        v.add(k); q.push([...p, {r:nr, c:nc}]);
+      }
+    }
+  }
+  return [end];
+}
+
+function animatePath(moves) {
+  history = [{player: currentLevelData.player, boxes: JSON.parse(JSON.stringify(currentLevelData.boxes))}];
+  let curB = JSON.parse(JSON.stringify(currentLevelData.boxes)), curP = currentLevelData.player;
+
+  moves.forEach(m => {
+    const walk = getWalkPath(curP, m.pushPos, curB, currentLevelData.walls, currentLevelData.rows, currentLevelData.cols);
+    walk.shift();
+    walk.forEach(step => history.push({player: step, boxes: JSON.parse(JSON.stringify(curB))}));
+    const d = DIRS[m.dir]; const box = curB[m.bIdx];
+    curB[m.bIdx] = {r: box.r + d.dr, c: box.c + d.dc}; curP = {r: box.r, c: box.c};
+    history.push({player: curP, boxes: JSON.parse(JSON.stringify(curB))});
+  });
+
+  currentStep = 0; isPlaying = false; draw();
+  document.getElementById("status").textContent = "SOLVED!";
+  ['prevBtn', 'playBtn', 'nextBtn', 'resetBtn'].forEach(id => document.getElementById(id).disabled = false);
+}
+
+//UI EVENTS
+document.getElementById("solveBtn").onclick = async () => {
+  document.getElementById("solveBtn").disabled = true;
+  document.getElementById("status").textContent = "Preprocessing...";
+  const res = await solve();
+  document.getElementById("solveBtn").disabled = false;
+  if(res === -1) document.getElementById("status").textContent = "NO SOLUTION FOUND";
+  else document.getElementById("statsDisplay").textContent = `States explored: ${res}`;
+};
+
+document.getElementById("nextBtn").onclick = () => { if(currentStep < history.length-1) { currentStep++; draw(); } };
+document.getElementById("prevBtn").onclick = () => { if(currentStep > 0) { currentStep--; draw(); } };
+document.getElementById("resetBtn").onclick = () => { currentStep = 0; draw(); };
+document.getElementById("playBtn").onclick = function() {
+  isPlaying = !isPlaying; this.textContent = isPlaying ? "Pause" : "Play";
+  const run = () => {
+    if(!isPlaying) return;
+    if(currentStep < history.length-1) { currentStep++; draw(); setTimeout(run, 500 - document.getElementById("speedRange").value); }
+    else { isPlaying = false; this.textContent = "Play"; }
+  };
+  run();
+};
+
+loadAssets(() => { 
+  const raw = document.getElementById("levelInput").value.trim().split("-");
+  let p, b=[], g=[], w=new Set();
+  raw.forEach((row,r) => row.split("").forEach((v,c) => {
+    const n = parseInt(v); const k = `${r},${c}`;
+    if(n===1) w.add(k); if(n===3||n===6) p={r,c};
+    if(n===4||n===7) b.push({r,c}); if(n===5||n===6||n===7) g.push({r,c});
+  }));
+  currentLevelData = {player:p, boxes:b, goals:g, walls:w, rows:raw.length, cols:raw[0].length};
+  history = [{player:p, boxes:b}]; draw();
+});
+</script>
+</body>
+</html>

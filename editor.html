@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sokowyn Level Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+    <div id="editor-container">
+        <div id="editor-top-bar">
+            <div class="toolbar-section" id="tile-palette">
+                </div>
+
+            <div class="toolbar-section" id="tool-select">
+                <button class="tool-btn active" data-tool="paint">PAINT</button>
+                <button class="tool-btn" data-tool="fill">FILL</button>
+                <button class="tool-btn" data-tool="line">LINE</button>
+            </div>
+
+            <div class="toolbar-section" id="editor-actions">
+                <button id="btn-settings">SETTINGS</button>
+                <button id="btn-export" class="primary-btn">EXPORT</button>
+            </div>
+        </div>
+
+        <div id="workspace">
+            <canvas id="editor-canvas"></canvas>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-window">
+            <h3>PUZZLE SETTINGS</h3>
+            <div class="setting-row">
+                <label>WIDTH:</label>
+                <input type="number" id="input-width" value="10" min="3" max="30">
+            </div>
+            <div class="setting-row">
+                <label>HEIGHT:</label>
+                <input type="number" id="input-height" value="10" min="3" max="30">
+            </div>
+            <button id="apply-settings">APPLY</button>
+            <button id="close-settings">CLOSE</button>
+        </div>
+    </div>
+
+    <div id="export-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-window">
+        <h3>LEVEL CODE</h3>
+        <textarea id="export-output" readonly style="width: 100%; height: 100px; background: #000; color: #0f0; font-family: monospace;"></textarea>
+        <div style="margin-top: 15px;">
+            <button id="copy-code">COPY TO CLIPBOARD</button>
+            <button id="download-example">DOWNLOAD EXAMPLE PACK</button>
+            <button id="close-export">CLOSE</button>
+        </div>
+    </div>
+    </div>
+    
+    <script src="editor.js"></script>   
+</body>
+</html>

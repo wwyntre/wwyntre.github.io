@@ -9,6 +9,16 @@ const currentPackTitle = document.getElementById("current-pack-title");
 const backToPacksButton = document.getElementById("back-to-packs");
 const exitGameButton = document.getElementById("exit-game");
 
+const GRADIENT_PRESETS = [
+    { start: "#110014", end: "#570b8e" },
+    { start: "#adced2", end: "#0b6e8e" },
+    { start: "#00092c", end: "#3e558fff" },
+    { start: "#1f0017ff", end: "#ffb7f2ff" },
+    { start: "#001602ff", end: "#639a69ff" }
+];
+
+let currentGradientIndex = 0;
+
 
 // STATE
 let currentLevelIndex = 0;
@@ -18,12 +28,12 @@ let loadedPacks = [];
 // SPRITES
 const TILE_SIZE = 64;
 const SPRITE_PATHS = {
-    0: "air.png",    
-    1: "wall.png",
-    2: "floor.png",
-    3: "player.png",
-    4: "box.png",
-    5: "goal.png"
+    0: "Sprites/air.png",    
+    1: "Sprites/wall.png",
+    2: "Sprites/floor.png",
+    3: "Sprites/player.png",
+    4: "Sprites/box.png",
+    5: "Sprites/goal.png"
 };
 
 const Sprites = {};
@@ -116,6 +126,14 @@ function renderLevelList(pack) {
         item.className = "level-list-item";
         item.dataset.index = index;
 
+        const progressKey = `completed_${pack.packName}_${level.levelName}`;
+        if (localStorage.getItem(progressKey) === "true") {
+            const check = document.createElement("img");
+            check.src = "icons/checkmark.png"; // Make sure you have this icon!
+            check.className = "checkmark-icon";
+            item.appendChild(check);
+        }
+
         const canvas = document.createElement("canvas");
         canvas.className = "level-preview-canvas";
         canvas.width = 64;
@@ -139,7 +157,7 @@ item.addEventListener("click", () => {
         console.log("Starting Level:", level.levelName); 
         window.startLevel(pack, index); 
     } else {
-        console.error("The startLevel function is not globally available. Check game.js execution.");
+        console.error("the startLevel function is not globally available.");
     }
 });
 
@@ -199,8 +217,22 @@ function goToPackSelect() {
 
     }, delayDuration); 
 
+    packList.innerHTML = "";
+    loadedPacks.forEach(pack => renderPackCard(pack));
+
+    renderEditorCard();
 
     document.removeEventListener("keydown", handleKeyboardNavigation);
+
+    function updateBackgroundGradient() {
+    currentGradientIndex = (currentGradientIndex + 1) % GRADIENT_PRESETS.length;
+    const preset = GRADIENT_PRESETS[currentGradientIndex];
+
+    document.documentElement.style.setProperty('--bg-start', preset.start);
+    document.documentElement.style.setProperty('--bg-end', preset.end);
+}
+
+    window.updateBackgroundGradient = updateBackgroundGradient;
 }
 
 function goToGameScreen() {
@@ -211,6 +243,10 @@ function goToGameScreen() {
 function goToLevelListFromGame() {
     gameScreen.classList.remove("active");
     levelListScreen.classList.add("active");
+
+    if (currentPack) {
+        renderLevelList(currentPack);
+    }
 }
 
 function goToLevelList(pack) {
@@ -230,13 +266,51 @@ function renderPackCard(pack) {
     const card = document.createElement("div");
     card.className = "pack-card";
 
-    card.innerHTML = `
+    const totalLevels = pack.levels.length;
+    const completedCount = pack.levels.filter(level => {
+        return localStorage.getItem(`completed_${pack.packName}_${level.levelName}`) === "true";
+    }).length;
+    const progressPercent = (completedCount / totalLevels) * 100;
+    
+    // Determine if we should apply the rainbow effect
+    const completeClass = (progressPercent === 100) ? "is-complete" : "";
+
+    card.innerHTML += `
+        <div class="pack-header-stats">
+            <span class="pack-stats-text ${completeClass}">${completedCount}/${totalLevels}</span>
+            <div class="mini-progress-bg">
+                <div class="mini-progress-fill ${completeClass}" style="width: ${progressPercent}%"></div>
+            </div>
+        </div>
         <h3 class="pack-name">${pack.packName}</h3>
         <p class="pack-description">${pack.description}</p>
         <div class="pack-difficulty">${createDifficultyStars(pack.difficulty)}</div>
     `;
 
     card.addEventListener("click", () => goToLevelList(pack));
+    packList.appendChild(card);
+}
+
+function renderEditorCard() {
+    const card = document.createElement("div");
+    // We add a unique class 'editor-card' so we can style it differently
+    card.className = "pack-card editor-card";
+
+    card.innerHTML = `
+        <div class="pack-header-stats">
+            <span class="pack-stats-text"></span>
+        </div>
+        <h3 class="pack-name">SOKOWYN EXPERIMENTS LABORATORY</h3>
+        <p class="pack-description">Create your own levels, and packs!</p>
+        <div class="pack-difficulty">
+            <span style="font-size: 10px; color: var(--level-highlight);">Custom pack support!</span>
+        </div>
+    `;
+
+    card.addEventListener("click", () => {
+        window.location.href = "editor.html";
+    });
+    
     packList.appendChild(card);
 }
 
@@ -247,7 +321,8 @@ async function loadPacks() {
         "packs/pulse.json",
         "packs/hazard.json",  
         "packs/fathom.json",                
-        "packs/galaxy.json"
+        "packs/galaxy.json",
+        "packs/fun.json"                      
     ];
     const results = [];
 
@@ -265,17 +340,64 @@ async function loadPacks() {
     return results;
 }
 
+//SETTINGS FUNCTIONS
+
+function toggleSettings(event) {
+    if (event) event.stopPropagation();
+    
+    const overlay = document.getElementById('settings-overlay');
+    const isOpening = !overlay.classList.contains('active');
+    
+    overlay.classList.toggle('active');
+
+    if (isOpening) {
+        // Sync sliders when opening
+        document.getElementById('music-range').value = musicVolume;
+        document.getElementById('sfx-range').value = sfxVolume;
+    } else {
+        // When closing, force the focus back to the window so keys work!
+        window.focus(); 
+    }
+}
+
+window.toggleSettings = toggleSettings;
+
+//PROGRESS CLEARING
+function clearAllProgress() {
+    if (confirm("Are you sure? This will delete all your checkmarks!")) {
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith("completed_")) {
+                localStorage.removeItem(key);
+            }
+        });
+        
+        toggleSettings();
+        location.reload();
+    }
+}
+
+window.clearAllProgress = clearAllProgress;
+
 // INIT
 let firstClick = true;
 
-titleScreen.addEventListener("click", () => {
+titleScreen.addEventListener("click", (e) => {
+    // 1. If the user clicked the settings button or inside the window, STOP
+    if (e.target.closest('#settings-toggle') || e.target.closest('#settings-window')) {
+        return;
+    }
+
+    // 2. If settings are currently open, don't start the game
+    const isSettingsOpen = document.getElementById('settings-overlay').classList.contains('active');
+    if (isSettingsOpen) return;
+
+    // 3. Normal Start Logic
     if (firstClick) {
         if (window.playWelcomeTrackAndStartLoop) {
             window.playWelcomeTrackAndStartLoop();
         }
         firstClick = false;
     }
-    
     goToPackSelect(); 
 });
 
@@ -283,7 +405,7 @@ titleScreen.addEventListener("click", () => {
     try {
         await loadSprites();
     } catch (e) {
-        console.warn("sprite loading failed, continuing anyway", e);
+        console.warn("sprite loading failed, continuing anyways", e);
     }
 
     loadedPacks = await loadPacks();
@@ -292,12 +414,17 @@ titleScreen.addEventListener("click", () => {
     loadedPacks.forEach(pack => {
         renderPackCard(pack);
     });
+    renderEditorCard();
 })();
 
 backToPacksButton.addEventListener("click", () => {
     levelListScreen.classList.remove("active");
     
     packSelectScreen.classList.add("active");
+    packList.innerHTML = "";
+    loadedPacks.forEach(pack => renderPackCard(pack));
+
+    renderEditorCard();
 });
 
 exitGameButton.addEventListener("click", () => {

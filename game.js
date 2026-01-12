@@ -13,20 +13,22 @@ let keysPressed = {};
 let keyRepeatInterval = null;
 let animationQueue = [];
 let animationStartTime = 0;
+let moveCount = 0;
 const ANIMATION_DURATION = 85;
-const MAX_TILE_SIZE = 128; 
+const MAX_TILE_SIZE = 128;
+const moveCountDisplay = document.getElementById("move-count"); 
 
 //HISTORY VARIABLES
 let history = [];
 let historyIndex = -1;
 let initialLevelState = null;
 
-// --- DOM ELEMENTS
+//DOM ELEMENTS
 const gameScreen = document.getElementById("game-screen");
 const canvas = document.getElementById("game-canvas");
 const ctx = canvas.getContext("2d");
 
-// COMPLETION CARD ELEMENTS
+//COMPLETION CARD ELEMENTS
 const completionCard = document.getElementById("completion-card");
 const backButton = document.getElementById("back-to-levels");
 
@@ -59,7 +61,8 @@ function saveState() {
     
     const state = {
         player: { ...player },
-        boxes: boxes.map(b => ({ ...b }))
+        boxes: boxes.map(b => ({ ...b })),
+        moveCount: moveCount
     };
 
     history.push(state);
@@ -75,8 +78,12 @@ function loadState(index) {
     
     player = { ...state.player };
     boxes = state.boxes.map(b => ({ ...b }));
+    moveCount = state.moveCount;
+
+    if (moveCountDisplay) moveCountDisplay.textContent = moveCount;
     
     historyIndex = index;
+
 
     isAnimating = false; 
     animationQueue = [];
@@ -251,24 +258,27 @@ function interpolate(start, end, progress) {
 }
 
 function animate(timestamp) {
-    if (animationQueue.length === 0 && !isAnimating) return; 
+    // 1. If nothing to do, stop the loop entirely
+    if (animationQueue.length === 0) {
+        isAnimating = false;
+        animationStartTime = 0;
+        return; 
+    }
 
-    if (animationQueue.length > 0) {
-        if (animationStartTime === 0) {
-            animationStartTime = timestamp;
-        }
+    if (animationStartTime === 0) {
+        animationStartTime = timestamp;
+    }
 
-        const currentAnimation = animationQueue[0];
-        
-        const duration = ANIMATION_DURATION; 
-        const elapsed = timestamp - animationStartTime;
-        let progress = Math.min(1, elapsed / duration);
-        
-        const isPushSequence = currentAnimation.type === 'player' && 
-                               animationQueue.length > 1 && 
-                               animationQueue[1].type === 'box';
+    const currentAnimation = animationQueue[0];
+    const duration = ANIMATION_DURATION; 
+    const elapsed = timestamp - animationStartTime;
+    let progress = Math.min(1, elapsed / duration);
+    
+    const isPushSequence = currentAnimation.type === 'player' && 
+                           animationQueue.length > 1 && 
+                           animationQueue[1].type === 'box';
 
-        drawGrid();
+    drawGrid();
 
         if (isPushSequence) {
             const playerAnim = currentAnimation;
@@ -304,42 +314,51 @@ function animate(timestamp) {
             ctx.drawImage(sprite, drawX, drawY, tileSize, tileSize);
         }
 
-        if (progress >= 1) {
-            
-            if (currentAnimation.type === 'player') {
-                player.row = currentAnimation.end.row;
-                player.col = currentAnimation.end.col;
-            } 
-            
+if (progress >= 1) {
+        if (currentAnimation.type === 'player') {
+            player.row = currentAnimation.end.row;
+            player.col = currentAnimation.end.col;
+        } 
+        
+        animationQueue.shift();
+        
+        if (isPushSequence) {
+            const boxAnim = animationQueue[0];
+            boxAnim.box.row = boxAnim.end.row;
+            boxAnim.box.col = boxAnim.end.col;
             animationQueue.shift();
-            
-            if (isPushSequence) {
-                const boxAnim = animationQueue[0];
-                boxAnim.box.row = boxAnim.end.row;
-                boxAnim.box.col = boxAnim.end.col;
-                
-                animationQueue.shift();
-            }
-            
-            animationStartTime = 0; 
-            
-            if (animationQueue.length === 0) {
-                isAnimating = false;
-                drawGrid();
-                
-                saveState(); 
+        }
+        
+        animationStartTime = 0; 
+        
+        if (animationQueue.length === 0) {
+            isAnimating = false;
+            drawGrid();
+            saveState(); 
 
-                if (checkLevelComplete()) {
-                    completionCard.style.display = "block";
-                }
-                return;
+            if (checkLevelComplete()) {
+                const finalMoveDisplay = document.getElementById("final-move-display");
+                if (finalMoveDisplay) finalMoveDisplay.textContent = `MOVES: ${moveCount}`;
+                completionCard.style.display = "block";
+                saveLevelProgress();
             }
+            return; // STOP THE LOOP HERE
         }
     }
     
+    // 2. ONLY request the next frame if we are still animating
     requestAnimationFrame(animate);
 }
 
+//LEVEL SAVING
+
+function saveLevelProgress() {
+    if (!currentPack || !initialLevelState) return;
+
+    // Create a unique ID for this level
+    const progressKey = `completed_${currentPack.packName}_${initialLevelState.levelName}`;
+    localStorage.setItem(progressKey, "true");
+}
 
 //MOVEMENT LOGIC
 
@@ -351,12 +370,14 @@ function handleMove(dr, dc) {
     const nextC = player.col + dc;
     let moveSuccessful = false;
 
+    if (checkLevelComplete()) return false;
+
     if (nextR < 0 || nextR >= rows || nextC < 0 || nextC >= cols || grid[nextR][nextC] === 1) {
         return false;
     }
 
     const boxToMove = boxes.find(b => b.row === nextR && b.col === nextC);
-
+        
     if (boxToMove) {
         const boxNextR = nextR + dr;
         const boxNextC = nextC + dc;
@@ -369,6 +390,8 @@ function handleMove(dr, dc) {
         ) {
             return false;
         }
+
+        playSFX('push');
 
         animationQueue.push({ 
             type: 'player', 
@@ -385,6 +408,7 @@ function handleMove(dr, dc) {
         moveSuccessful = true;
         
     } else {
+        playSFX('move');
         animationQueue.push({ 
             type: 'player', 
             start: { ...player }, 
@@ -393,11 +417,16 @@ function handleMove(dr, dc) {
         moveSuccessful = true;
     }
 
+    if (moveSuccessful) {
+        moveCount++; //counter increment (holy shit open hexagon reference)
+        if (moveCountDisplay) moveCountDisplay.textContent = moveCount;
+
     highlightTiles = [];
     if (animationQueue.length > 0) {
         isAnimating = true;
         requestAnimationFrame(animate);
-    } 
+    }
+} 
     
     return moveSuccessful;
 }
@@ -424,6 +453,9 @@ function resetState(level) {
     isAnimating = false;
     animationQueue = [];
     animationStartTime = 0; 
+    moveCount = 0;
+
+    if (moveCountDisplay) moveCountDisplay.textContent = "0";
     
     if (keyRepeatInterval) {
         clearTimeout(keyRepeatInterval); 
@@ -440,6 +472,9 @@ if (levelNameDisplay) {
     levelNameDisplay.textContent = level.levelName; 
 }
     updateActionIcons();
+    if (window.updateBackgroundGradient) {
+        window.updateBackgroundGradient();
+    }
 }
 
 function startLevel(pack, levelIndex) {
@@ -453,7 +488,7 @@ function startLevel(pack, levelIndex) {
     if (window.goToGameScreen) {
         window.goToGameScreen();
     } else {
-        console.error("goToGameScreen function not found in global scope!");
+        console.error("goToGameScreen function not found in global scope"); 
         gameScreen.classList.add("active");
     }
     
@@ -472,6 +507,9 @@ const KEY_MAP = {
 };
 
 window.addEventListener("keydown", e => {
+
+    const isSettingsOpen = document.getElementById('settings-overlay').classList.contains('active');
+    if (isSettingsOpen) return;
     const key = e.key;
     
     if (key === 'r' || key === 'R') {
@@ -543,20 +581,6 @@ window.addEventListener("keyup", e => {
             clearTimeout(keyRepeatInterval); 
             clearInterval(keyRepeatInterval);
             keyRepeatInterval = null;
-        }
-    }
-});
-
-
-//LEVEL CONTROL BUTTONS
-nextButton.addEventListener("click", () => {
-    completionCard.style.display = "none";
-    if (currentPack && currentLevelIndex + 1 < currentPack.levels.length) {
-        resetState(currentPack.levels[currentLevelIndex]);
-        drawGrid();
-    } else {
-        if (window.goToLevelListFromGame) {
-             window.goToLevelListFromGame(); 
         }
     }
 });
