@@ -1,9 +1,10 @@
 const BACKGROUND_MUSIC_PATHS = [
     "music/pushover.ogg",
     "music/separation.ogg",
-    "music/megablast.ogg",
+    "music/welcome.ogg",
     "music/stardust.mp3", 
-    "music/everwonder.ogg",    
+    "music/everwonder.ogg",
+    "music/align.ogg",    
 ];
 
 //AUDIO STATES
@@ -82,7 +83,7 @@ function setMusicVolume(value) {
     console.log("Music Volume set to:", musicVolume);
 }
 
-function setSFXVolume(value) {
+function setSFXVolume(value) { 
     // Force the value to be a number immediately
     sfxVolume = parseFloat(value);
     localStorage.setItem('sfxVolume', sfxVolume);

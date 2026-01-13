@@ -17,10 +17,21 @@
         <p class="warning">WARNING: play on PC only! This game doesn't support mobile controls, though there will be in the future.</p>        
     </div>
 
+    <input type="file" id="pack-loader-input" accept=".json" style="display: none;">
+
     <div id="pack-select-screen" class="screen">
         <h2 class="section-title">Select a Pack</h2>
         <div id="pack-list">
             </div>
+    </div>
+
+    <div id="custom-pack-screen" class="screen">
+    <div class="screen-header">
+        <button id="back-to-main-packs" class="back-button">← BACK</button>
+        <h2 class="section-title">User Laboratory</h2>
+    </div>
+    <div id="custom-pack-list" class="pack-grid">
+        </div>
     </div>
 
     <div id="level-list-screen" class="screen">
@@ -33,7 +44,7 @@
         </div>
     </div>
 
-<div id="game-screen" class="screen">
+    <div id="game-screen" class="screen" >
     <button id="exit-game" class="back-button-top">BACK</button>
     <div id="move-counter-container" class="move-counter">MOVES: <span id="move-count">0</span></div>
     <div id="level-name-container">
@@ -88,9 +99,9 @@
     </div>
     </div>
 
-    <script src="music.js"></script>  
+    <script src="music.js"></script> 
+    <script src="game.js"></script>  
     <script src="script.js"></script>
-    <script src="game.js"></script> 
     <script src="particles.js"></script>           
 </body>
 </html>

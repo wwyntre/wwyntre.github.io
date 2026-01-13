@@ -8,6 +8,8 @@ const levelSelectContainer = document.getElementById("level-select-container");
 const currentPackTitle = document.getElementById("current-pack-title");
 const backToPacksButton = document.getElementById("back-to-packs");
 const exitGameButton = document.getElementById("exit-game");
+const customPackScreen = document.getElementById("custom-pack-screen");
+const customPackList = document.getElementById("custom-pack-list");
 
 const GRADIENT_PRESETS = [
     { start: "#110014", end: "#570b8e" },
@@ -24,6 +26,7 @@ let currentGradientIndex = 0;
 let currentLevelIndex = 0;
 let usingKeyboard = false;
 let loadedPacks = [];
+let customPacks = [];
 
 // SPRITES
 const TILE_SIZE = 64;
@@ -61,6 +64,7 @@ function loadSprites() {
 
 // HELPERS
 function parsePuzzle(code) {
+    if (!code || typeof code !== 'string') return [[0]]; // Fallback to a single air tile
     return code.split("-").map(row =>
         row.split("").map(n => parseInt(n))
     );
@@ -221,6 +225,7 @@ function goToPackSelect() {
     loadedPacks.forEach(pack => renderPackCard(pack));
 
     renderEditorCard();
+    renderLoadPackCard();
 
     document.removeEventListener("keydown", handleKeyboardNavigation);
 
@@ -313,6 +318,69 @@ function renderEditorCard() {
     
     packList.appendChild(card);
 }
+
+function handleCustomPackUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const packData = JSON.parse(e.target.result);
+            
+            if (!packData.packName || !packData.levels) {
+                alert("Invalid Pack: Missing packName or levels array.");
+                return;
+            }
+
+            // --- ADD THIS CONVERSION LOOP ---
+            packData.levels.forEach(level => {
+                // If the level has 'grid' (from editor) but no 'code' (for game)
+                if (level.grid && !level.code) {
+                    level.code = level.grid;
+                }
+            });
+            // --------------------------------
+
+            loadedPacks.push(packData);
+            goToPackSelect(); 
+            
+            console.log("Successfully loaded custom pack:", packData.packName);
+            
+            // Clear the input so you can re-upload the same file if you edit it
+            event.target.value = ""; 
+        } catch (err) {
+            alert("There was an error with parsing your JSON.");
+        }
+    };
+    reader.readAsText(file);
+}
+
+// 2. The Card Renderer
+function renderLoadPackCard() {
+    const card = document.createElement("div");
+    card.className = "pack-card load-pack-card"; // Unique class for styling
+
+    card.innerHTML = `
+        <div class="pack-header-stats">
+            <span class="pack-stats-text">IMPORT</span>
+        </div>
+        <h3 class="pack-name">LOAD PACK</h3>
+        <p class="pack-description">Select a .json file from your device to add a custom pack to the list.</p>
+        <div class="pack-difficulty">
+            <span style="font-size: 10px; color: #00ffcc;">EXTERNALLY LOADED</span>
+        </div>
+    `;
+
+    card.addEventListener("click", () => {
+        document.getElementById('pack-loader-input').click();
+    });
+    
+    packList.appendChild(card);
+}
+
+// 3. Initialize the input listener (add this in your init block)
+document.getElementById('pack-loader-input').addEventListener('change', handleCustomPackUpload);
 
 // PACK LOADING
 async function loadPacks() {
@@ -415,6 +483,7 @@ titleScreen.addEventListener("click", (e) => {
         renderPackCard(pack);
     });
     renderEditorCard();
+    renderLoadPackCard();
 })();
 
 backToPacksButton.addEventListener("click", () => {
@@ -425,6 +494,7 @@ backToPacksButton.addEventListener("click", () => {
     loadedPacks.forEach(pack => renderPackCard(pack));
 
     renderEditorCard();
+    renderLoadPackCard();
 });
 
 exitGameButton.addEventListener("click", () => {

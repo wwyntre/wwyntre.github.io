@@ -36,7 +36,7 @@ function resizeBg() {
 window.addEventListener('resize', resizeBg);
 resizeBg();
 
-// --- CLASS DEFINITIONS ---
+//CLASS DEFINITIONS
 
 class Particle {
     constructor() { this.init(); }
@@ -111,7 +111,7 @@ class Sparkle {
     }
 }
 
-// --- INITIALIZATION & CORE LOOP ---
+//INITIALIZATION & LOOPING
 
 for (let i = 0; i < particleSettings.count; i++) { particles.push(new Particle()); }
 
@@ -123,7 +123,6 @@ function animateBg(timestamp) {
 
     bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
     
-    // 1. Box Particle Logic
     particles = particles.filter(p => !p.isDead);
     if (particles.length < particleSettings.minCount) {
         for (let i = 0; i < 5; i++) {
@@ -132,7 +131,6 @@ function animateBg(timestamp) {
     }
     particles.forEach(p => { p.update(deltaTime); p.draw(); });
 
-    // 2. Sparkle Logic (Only if assets are ready)
     if (assetsReady) {
         sparkles = sparkles.filter(s => !s.remove);
         sparkleSettings.variations.forEach(v => {
@@ -145,7 +143,7 @@ function animateBg(timestamp) {
     requestAnimationFrame(animateBg);
 }
 
-// --- ASSET LOADING ---
+//ASSET LOADING
 
 async function preloadSparkles() {
     try {
@@ -165,6 +163,6 @@ async function preloadSparkles() {
     }
 }
 
-// Start everything
+//START TS
 preloadSparkles();
 requestAnimationFrame(animateBg);

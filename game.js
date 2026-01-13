@@ -17,6 +17,7 @@ let moveCount = 0;
 const ANIMATION_DURATION = 85;
 const MAX_TILE_SIZE = 128;
 const moveCountDisplay = document.getElementById("move-count"); 
+window.Sprites ??= {};
 
 //HISTORY VARIABLES
 let history = [];
@@ -25,8 +26,8 @@ let initialLevelState = null;
 
 //DOM ELEMENTS
 const gameScreen = document.getElementById("game-screen");
-const canvas = document.getElementById("game-canvas");
-const ctx = canvas.getContext("2d");
+const gameCanvas = document.getElementById("game-canvas");
+const gameCtx = gameCanvas.getContext("2d");
 
 //COMPLETION CARD ELEMENTS
 const completionCard = document.getElementById("completion-card");
@@ -205,14 +206,14 @@ function drawGrid() {
     const rows = grid.length;
     const cols = grid[0].length;
     
-    tileSize = Math.min(MAX_TILE_SIZE, canvas.width / cols, canvas.height / rows);
+    tileSize = Math.min(MAX_TILE_SIZE, gameCanvas.width / cols, gameCanvas.height / rows);
     const gridWidth = tileSize * cols;
     const gridHeight = tileSize * rows;
-    offsetX = (canvas.width - gridWidth) / 2;
-    offsetY = (canvas.height - gridHeight) / 2;
+    offsetX = (gameCanvas.width - gridWidth) / 2;
+    offsetY = (gameCanvas.height - gridHeight) / 2;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.imageSmoothingEnabled = false;
+    gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+    gameCtx.imageSmoothingEnabled = false;
 
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
@@ -220,18 +221,18 @@ function drawGrid() {
             const x = offsetX + c * tileSize;
             const y = offsetY + r * tileSize;
 
-            if (t !== 0) ctx.drawImage(Sprites[2], x, y, tileSize, tileSize);          
-            if (t === 1) ctx.drawImage(Sprites[2], x, y, tileSize, tileSize);
-            if (t === 1) ctx.drawImage(Sprites[1], x, y, tileSize, tileSize);
-            if (t === 5 || t === 6 || t === 7) ctx.drawImage(Sprites[5], x, y, tileSize, tileSize);
+            if (t !== 0) gameCtx.drawImage(Sprites[2], x, y, tileSize, tileSize);          
+            if (t === 1) gameCtx.drawImage(Sprites[2], x, y, tileSize, tileSize);
+            if (t === 1) gameCtx.drawImage(Sprites[1], x, y, tileSize, tileSize);
+            if (t === 5 || t === 6 || t === 7) gameCtx.drawImage(Sprites[5], x, y, tileSize, tileSize);
         }
     }
 
-    ctx.fillStyle = "rgba(160, 32, 240, 1)";
+    gameCtx.fillStyle = "rgba(160, 32, 240, 1)";
     highlightTiles.forEach(pos => {
         const x = offsetX + pos.col * tileSize;
         const y = offsetY + pos.row * tileSize;
-        ctx.fillRect(x, y, tileSize, tileSize);
+        gameCtx.fillRect(x, y, tileSize, tileSize);
     });
     
     boxes.forEach(b => {
@@ -240,7 +241,7 @@ function drawGrid() {
         if (!isQueued) {
             const x = offsetX + b.col * tileSize;
             const y = offsetY + b.row * tileSize;
-            ctx.drawImage(Sprites[4], x, y, tileSize, tileSize);
+            gameCtx.drawImage(Sprites[4], x, y, tileSize, tileSize);
         }
     });
 
@@ -249,7 +250,7 @@ function drawGrid() {
     if (!isPlayerQueued) {
         const px = offsetX + player.col * tileSize;
         const py = offsetY + player.row * tileSize;
-        ctx.drawImage(Sprites[3], px, py, tileSize, tileSize);
+        gameCtx.drawImage(Sprites[3], px, py, tileSize, tileSize);
     }
 }
 
@@ -290,7 +291,7 @@ function animate(timestamp) {
             let endY = offsetY + playerAnim.end.row * tileSize;
             let drawX = interpolate(startX, endX, progress);
             let drawY = interpolate(startY, endY, progress);
-            ctx.drawImage(Sprites[3], drawX, drawY, tileSize, tileSize);
+            gameCtx.drawImage(Sprites[3], drawX, drawY, tileSize, tileSize);
 
             startX = offsetX + boxAnim.start.col * tileSize;
             startY = offsetY + boxAnim.start.row * tileSize;
@@ -298,7 +299,7 @@ function animate(timestamp) {
             endY = offsetY + boxAnim.end.row * tileSize;
             drawX = interpolate(startX, endX, progress);
             drawY = interpolate(startY, endY, progress);
-            ctx.drawImage(Sprites[4], drawX, drawY, tileSize, tileSize);
+            gameCtx.drawImage(Sprites[4], drawX, drawY, tileSize, tileSize);
             
         } else {
             const sprite = currentAnimation.type === 'player' ? Sprites[3] : Sprites[4];
@@ -311,7 +312,7 @@ function animate(timestamp) {
             const drawX = interpolate(startX, endX, progress);
             const drawY = interpolate(startY, endY, progress);
 
-            ctx.drawImage(sprite, drawX, drawY, tileSize, tileSize);
+            gameCtx.drawImage(sprite, drawX, drawY, tileSize, tileSize);
         }
 
 if (progress >= 1) {
@@ -595,3 +596,15 @@ backButton.addEventListener("click", () => {
 if (undoIcon) undoIcon.addEventListener("click", undo);
 if (redoIcon) redoIcon.addEventListener("click", redo);
 if (resetIcon) resetIcon.addEventListener("click", resetLevel);
+
+window.playtestLevel = function(levelCode) {
+    const tempPack = {
+        packName: "__editor_playtest__",
+        levels: [{
+            levelName: "playtest",
+            code: levelCode
+        }]
+    };
+
+    startLevel(tempPack, 0);
+};
